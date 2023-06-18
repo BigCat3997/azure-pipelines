@@ -1,0 +1,46 @@
+trigger: none
+
+resources:
+  repositories:
+    - repository: devops-integration
+      type: git
+      name: devops-integration/devops-integration
+
+parameters:
+  - name: isTest
+    displayName: Run test
+    type: boolean
+    default: false
+
+  - name: isConnectToFeed
+    displayName: Connect to Azure feed
+    type: boolean
+    default: true
+
+variables:
+  vmImage: 'ubuntu-latest'
+
+  storageAccountName: $(storageAccount.Name)
+  storageAccountAccessKey: $(storageAccount.AccessKey)
+
+  appDir: $(System.DefaultWorkingDirectory)/azure-functions-samples-java
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildSourceCode
+        displayName: Build Source Code
+        pool:
+          vmImage: $(vmImage)
+        steps:
+          - bash: |
+              git clone https://github.com/Azure-Samples/azure-functions-samples-java.git
+            displayName: Pull source code
+
+          - template: pipelines/k8s-pipeline/maven-build.yml@devops-integration
+            parameters:
+              storageAccountName: $(storageAccountName)
+              storageAccountAccessKey: $(storageAccountAccessKey)
+              appDir: $(appDir)
+              isTest: ${{ parameters.isTest }}
+              isConnectToFeed: ${{ parameters.isConnectToFeed }}
