@@ -52,8 +52,8 @@ steps:
         GIT_CREDENTIAL_URL=${GIT_URL}
       fi
 
-      mkdir -p source && \
-      cd source && \
+      mkdir -p ${SOURCE_FOLDER} && \
+      cd ${SOURCE_FOLDER} && \
       git clone $GIT_CREDENTIAL_URL . && \
       git checkout $GIT_BRANCH
     env:
