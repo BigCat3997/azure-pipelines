@@ -2,10 +2,7 @@ parameters:
   - name: workDir
     displayName: Working directory
     type: string
-
-  - name: appDir
-    displayName: Application directory
-    type: string
+    default: $(System.DefaultWorkingDirectory)
 
   - name: javaVersion
     displayName: Java's version
@@ -31,6 +28,16 @@ parameters:
     type: string
     default: 'clean install -B -e'
 
+  - name: mavenCacheFolder
+    displayName: Maven cache folder
+    type: string
+    default: $(Pipeline.Workspace)/.m2/repository
+
+  - name: outputFolder
+    displayName: Output folder
+    type: string
+    default: 'target'
+
   - name: preSteps
     type: stepList
     default: []
@@ -44,9 +51,36 @@ steps:
 
   - task: JavaToolInstaller@0
     inputs:
-      versionSpec: '11'
+      versionSpec: '${{ parameters.javaVersion }}'
       jdkArchitectureOption: 'x64'
       jdkSourceOption: 'PreInstalled'
+    displayName: Set Java ${{ parameters.javaVersion }}
+
+  - task: Cache@2
+    inputs:
+      key: 'maven | "$(Agent.OS)" | **/pom.xml'
+      restoreKeys: |
+        maven | "$(Agent.OS)"
+        maven
+      path: ${{ parameters.mavenCacheFolder }}
+    displayName: Cache Maven local repo
+
+  - bash: |
+      mvn clean package -Dmaven.repo.local=${MAVEN_CACHE_FOLDER}
+    env:
+      MAVEN_CACHE_FOLDER: ${{ parameters.mavenCacheFolder }}
+    workingDirectory: ${{ parameters.workDir }}
+    displayName: Maven Build
+
+  - task: CopyFiles@2
+    displayName: 'Copy libs to: $(build.artifactstagingdirectory)'
+    inputs:
+      SourceFolder: '${{ parameters.workDir }}/${{ parameters.outputFolder }}'
+      Contents: |
+        *.jar
+      TargetFolder: '$(build.artifactstagingdirectory)'
+      CleanTargetFolder: false
+      OverWrite: true
 
   # - ${{ if eq(parameters.isConnectToFeed, true) }}:
   #     - task: MavenAuthenticate@0
@@ -54,18 +88,4 @@ steps:
   #       inputs:
   #         artifactsFeeds: devops-feed
 
-  # - task: Maven@4
-  #   inputs:
-  #     mavenPOMFile: '${{ parameters.appDir }}/pom.xml'
-  #     goals: ${{ parameters.mavenGoals }}
-  #     testResultsFiles: '**/surefire-reports/TEST-*.xml'
-  #     javaHomeOption: 'JDKVersion'
-  #     jdkVersionOption: '1.11'
-  #     jdkArchitectureOption: 'x64'
-  #     mavenVersionOption: 'Path'
-  #     mavenDirectory: '${{ parameters.mavenTargetMountDir }}'
-  #     mavenSetM2Home: true
-  #     mavenOptions: '-Xmx1024m $(getterVariables.MAVEN_OPTS)'
-  #     mavenAuthenticateFeed: ${{ parameters.isConnectToFeed }}
-
-  - ${{ parameters.poseSteps }}
+  - ${{ parameters.postSteps }}
