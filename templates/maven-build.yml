@@ -70,7 +70,7 @@ steps:
     env:
       MAVEN_CACHE_FOLDER: ${{ parameters.mavenCacheFolder }}
     workingDirectory: ${{ parameters.workDir }}
-    displayName: Maven Build
+    displayName: Maven build
 
   - task: CopyFiles@2
     displayName: 'Copy libs to: $(build.artifactstagingdirectory)'
