@@ -3,6 +3,11 @@ parameters:
     displayName: Working directory
     type: string
 
+  - name: sourceFolder
+    displayName: Source folder
+    type: string
+    default: 'source'
+
   - name: gitUrl
     displayName: Url of git
     type: string
@@ -10,45 +15,61 @@ parameters:
   - name: gitUsername
     displayName: Username of git
     type: string
+    default: ''
 
   - name: gitToken
     displayName: Token of git
     type: string
+    default: ''
 
   - name: gitBranch
     displayName: Token of git
     type: string
 
-  - name: preStep
+  - name: isPrivateRepo
+    displayName: Is private repo
+    type: boolean
+    default: false
+
+  - name: preSteps
     type: stepList
     default: []
 
-  - name: postStep
+  - name: postSteps
     type: stepList
     default: []
 
 steps:
-  - ${{ parameters.preStep }}
+  - ${{ parameters.preSteps }}
 
   - bash: |
-      GIT_PROTOCOL="$(echo $GIT_URL | grep :// | sed -e's,^\(.*://\).*,\1,g')"
-      GIT_URI="$(echo ${GIT_URL/$GIT_PROTOCOL/})"
-      GIT_CREDENTIAL_URL="${GIT_PROTOCOL}${GIT_USERNAME}:${GIT_TOKEN}@${GIT_URI}"
+      if [[ "${IS_PRIVATE_REPO}" == "true" ]]
+      then
+        GIT_PROTOCOL="$(echo $GIT_URL | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+        GIT_URI="$(echo ${GIT_URL/$GIT_PROTOCOL/})"
+        GIT_CREDENTIAL_URL="${GIT_PROTOCOL}${GIT_USERNAME}:${GIT_TOKEN}@${GIT_URI}"
+      else
+        GIT_CREDENTIAL_URL=${GIT_URL}
+      fi
 
-      git clone $GIT_CREDENTIAL_URL && cd "$(basename "$_" .git)"
+      mkdir -p source && \
+      cd source && \
+      git clone $GIT_CREDENTIAL_URL . && \
       git checkout $GIT_BRANCH
     env:
+      IS_PRIVATE_REPO: ${{ parameters.isPrivateRepo }}
       GIT_URL: ${{ parameters.gitUrl }}
       GIT_USERNAME: ${{ parameters.gitUsername }}
       GIT_TOKEN: ${{ parameters.gitToken }}
       GIT_BRANCH: ${{ parameters.gitBranch }}
+      SOURCE_FOLDER: ${{ parameters.sourceFolder }}
     workingDirectory: ${{ parameters.workDir }}
-    displayName: 'Clone Project'
+    displayName: Clone Project
 
   - bash: |
       ls -la
     workingDirectory: ${{ parameters.workDir }}
-    displayName: 'Verify Project'
+    displayName: Verify Project
 
   - bash: |
       GIT_COMMIT_ID=$(git rev-parse HEAD)
@@ -56,6 +77,6 @@ steps:
       echo "##vso[task.setvariable variable=gitShortCommitId;isOutput=true]${GIT_COMMIT_ID:0:8}"
     workingDirectory: ${{ parameters.workDir }}
     name: gitGetter
-    displayName: 'Initialize Git Variables'
+    displayName: Initialize Git Variables
 
-  - ${{ parameters.postStep }}
+  - ${{ parameters.postSteps }}
