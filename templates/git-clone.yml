@@ -1,0 +1,61 @@
+parameters:
+  - name: workDir
+    displayName: Working directory
+    type: string
+
+  - name: gitUrl
+    displayName: Url of git
+    type: string
+
+  - name: gitUsername
+    displayName: Username of git
+    type: string
+
+  - name: gitToken
+    displayName: Token of git
+    type: string
+
+  - name: gitBranch
+    displayName: Token of git
+    type: string
+
+  - name: preStep
+    type: stepList
+    default: []
+
+  - name: postStep
+    type: stepList
+    default: []
+
+steps:
+  - ${{ parameters.preStep }}
+
+  - bash: |
+      GIT_PROTOCOL="$(echo $GIT_URL | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+      GIT_URI="$(echo ${GIT_URL/$GIT_PROTOCOL/})"
+      GIT_CREDENTIAL_URL="${GIT_PROTOCOL}${GIT_USERNAME}:${GIT_TOKEN}@${GIT_URI}"
+
+      git clone $GIT_CREDENTIAL_URL && cd "$(basename "$_" .git)"
+      git checkout $GIT_BRANCH
+    env:
+      GIT_URL: ${{ parameters.gitUrl }}
+      GIT_USERNAME: ${{ parameters.gitUsername }}
+      GIT_TOKEN: ${{ parameters.gitToken }}
+      GIT_BRANCH: ${{ parameters.gitBranch }}
+    workingDirectory: ${{ parameters.workDir }}
+    displayName: 'Clone Project'
+
+  - bash: |
+      ls -la
+    workingDirectory: ${{ parameters.workDir }}
+    displayName: 'Verify Project'
+
+  - bash: |
+      GIT_COMMIT_ID=$(git rev-parse HEAD)
+      echo "##vso[task.setvariable variable=gitCommitId;isOutput=true]${GIT_COMMIT_ID}"
+      echo "##vso[task.setvariable variable=gitShortCommitId;isOutput=true]${GIT_COMMIT_ID:0:8}"
+    workingDirectory: ${{ parameters.workDir }}
+    name: gitGetter
+    displayName: 'Initialize Git Variables'
+
+  - ${{ parameters.postStep }}
