@@ -1,0 +1,74 @@
+parameters:
+  - name: workDir
+    displayName: Working directory
+    type: string
+    default: $(System.ArtifactsDirectory)
+
+  - name: artifactName
+    displayName: Artifact name
+    type: string
+    default: output
+
+  - name: targetJarPath
+    displayName: Dockerfile path
+    type: string
+
+  - name: dockerfilePath
+    displayName: Dockerfile path
+    type: string
+
+  - name: dockerImageName
+    displayName: Dockerfile path
+    type: string
+
+  - name: dockerImageVersion
+    displayName: Dockerfile path
+    type: string
+
+  - name: preSteps
+    type: stepList
+    default: []
+
+  - name: postSteps
+    type: stepList
+    default: []
+steps:
+  - ${{ parameters.preSteps }}
+
+  - task: DownloadBuildArtifacts@1
+    inputs:
+      buildType: 'current'
+      downloadType: 'single'
+      downloadPath: ${{ parameters.workDir }}
+      artifactName: ${{ parameters.artifactName }}
+
+  - bash: |
+      tree .
+    workingDirectory: ${{ parameters.workDir }}
+    displayName: Verify artifact content
+
+  - bash: |
+      echo "##[group]Used Variables"
+      echo "INFO: ${TARGET_JAR_PATH}"
+      echo "INFO: ${DOCKERFILE_PATH}"
+      echo "INFO: ${DOCKER_IMAGE_NAME}"
+      echo "INFO: ${DOCKER_IMAGE_VERSION}"
+      echo "##[endgroup]"
+
+      echo "##[section]INFO: Copy Dockerfile"
+      cp ${DOCKERFILE_PATH} Dockerfile
+
+      echo "##[section]INFO: Start Docker build"
+      docker build \
+      --build-arg JAR_FILE="${TARGET_JAR_PATH}" \
+      -t "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}" \
+      -f Dockerfile .
+    env:
+      TARGET_JAR_PATH: ${{ parameters.targetJarPath }}
+      DOCKERFILE_PATH: ${{ parameters.dockerfilePath }}
+      DOCKER_IMAGE_NAME: ${{ parameters.dockerImageName }}
+      DOCKER_IMAGE_VERSION: ${{ parameters.dockerImageVersion }}
+    workingDirectory: ${{ parameters.workDir }}/${{ parameters.artifactName }}
+    displayName: Docker build image
+
+  - ${{ parameters.postSteps }}
