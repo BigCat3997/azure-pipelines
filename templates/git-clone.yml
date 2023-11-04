@@ -29,7 +29,7 @@ parameters:
   - name: isPrivateRepo
     displayName: Is private repo
     type: string
-    default: false
+    default: 'false'
 
   - name: preSteps
     type: stepList

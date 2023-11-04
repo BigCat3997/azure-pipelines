@@ -1,0 +1,48 @@
+parameters:
+  - name: javaVersion
+    displayName: Java's version
+    type: string
+    default: '17'
+    values:
+      - '8'
+      - '11'
+      - '17'
+
+  - name: mavenVersion
+    displayName: Maven's version
+    type: string
+    default: '3.6.3'
+
+  # Use the path of Azure to save software.
+  - name: mavenPath
+    displayName: Maven's path
+    type: string
+    default: '$(Agent.ToolsDirectory)/maven'
+steps:
+  - script: |
+      wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.zip
+    env:
+      MAVEN_VERSION: ${{ parameters.mavenVersion }}
+    displayName: Download Maven ${{ parameters.mavenVersion }}
+
+  - task: ExtractFiles@1
+    inputs:
+      archiveFilePatterns: 'apache-maven-${{ parameters.mavenVersion }}-bin.zip'
+      destinationFolder: '${{ parameters.mavenPath }}/${{ parameters.mavenVersion }}/x64'
+      cleanDestinationFolder: false
+      overwriteExistingFiles: true
+    displayName: Extract Maven ${{ parameters.mavenVersion }}
+
+  - script: |
+      echo "##[section]INFO: Set Maven path"
+      echo "##vso[task.setvariable variable=M2_HOME]${MAVEN_PATH}"
+      echo "##vso[task.setvariable variable=MAVEN_HOME]${MAVEN_PATH}"
+      echo "##vso[task.prependpath]${MAVEN_PATH}/bin"
+
+      echo "##[section]INFO: Set Java path"
+      echo "##vso[task.setvariable variable=JAVA_HOME]${!JAVA_PATH}"
+      echo "##vso[task.prependpath]${JAVA_HOME}/bin"
+    env:
+      MAVEN_PATH: ${{ parameters.mavenPath }}/${{ parameters.mavenVersion }}/x64/apache-maven-${{ parameters.mavenVersion }}
+      JAVA_PATH: JAVA_HOME_${{ parameters.javaVersion }}_X64
+    displayName: Override path

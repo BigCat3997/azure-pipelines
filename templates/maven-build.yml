@@ -1,13 +1,16 @@
 parameters:
+  # Path will run the project.
   - name: workDir
     displayName: Working directory
     type: string
 
+  # Path will contain output of the process.
   - name: outputFolder
     displayName: Output folder
     type: string
     default: 'target'
 
+  # Java version
   - name: javaVersion
     displayName: Java's version
     type: string
@@ -17,51 +20,55 @@ parameters:
       - '11'
       - '17'
 
+  # Maven version.
   - name: mavenVersion
     displayName: Maven version
     type: string
     default: '3.6.3'
 
+  # Maven command will be run.
   - name: mavenGoals
     displayName: Maven goals
     type: string
     default: 'clean package -B -e'
 
-  - name: mavenOpts
-    displayName: Maven opts
-    type: string
-    default: ''
-
+  # Maven username is necessary when authenticate to Feed.
   - name: mavenUsername
     displayName: Maven username
     type: string
     default: ''
 
+  # Maven password is necessary when authenticate to Feed.
   - name: mavenPassword
     displayName: Maven password
     type: string
     default: ''
 
+  # Flag to use feed
   - name: isUseFeed
     displayName: Connect to Azure Feed
     type: string
     default: 'true'
 
+  # Flag to use cache
   - name: isUseCache
     displayName: Use cache for dependencies
     type: string
     default: 'true'
 
+  # Maven folder's path containing cache(dependencies).
   - name: mavenCacheFolder
     displayName: Maven cache folder
     type: string
     default: $(Pipeline.Workspace)/.m2/repository
 
+  # Maven repository url.
   - name: mavenUrl
     displayName: Maven url
     type: string
     default: ''
 
+  # Maven settings.xml path.
   - name: mavenSettingsXmlPath
     displayName: Maven settings.xml path
     type: string
@@ -77,33 +84,6 @@ parameters:
 
 steps:
   - ${{ parameters.preSteps }}
-
-  - bash: |
-      wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.zip
-    env:
-      MAVEN_VERSION: ${{ parameters.mavenVersion }}
-    displayName: Download Maven ${{ parameters.mavenVersion }}
-
-  - task: ExtractFiles@1
-    inputs:
-      archiveFilePatterns: 'apache-maven-${{ parameters.mavenVersion }}-bin.zip'
-      destinationFolder: '$(build.sourcesdirectory)/maven'
-
-  - script: |
-      echo "##vso[task.setvariable variable=M2_HOME]${MAVEN_PATH}"
-      echo "##vso[task.setvariable variable=MAVEN_HOME]${MAVEN_PATH}"
-      echo "##vso[task.prependpath]${MAVEN_PATH}/bin"
-
-      echo "##vso[task.setvariable variable=JAVA_HOME]${!JAVA_PATH}"
-      echo "##vso[task.prependpath]${JAVA_HOME}/bin"
-    env:
-      MAVEN_PATH: $(build.sourcesdirectory)/maven/apache-maven-${{ parameters.mavenVersion }}
-      JAVA_PATH: JAVA_HOME_${{ parameters.javaVersion }}_X64
-    displayName: Set Java ${{ parameters.javaVersion }}
-
-  - script: |
-      mvn --version
-    displayName: Maven version
 
   - bash: |
       COMMAND_ARGS=${MAVEN_GOALS}
