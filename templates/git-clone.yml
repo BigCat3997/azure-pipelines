@@ -66,10 +66,9 @@ steps:
     displayName: Clone project
 
   - bash: |
-      tree ${WORK_DIR}
-    env:
-      WORK_DIR: ${{ parameters.workDir }}
-    displayName: Verify project
+      tree .
+    workingDirectory: ${{ parameters.workDir }}
+    displayName: Verify git project
 
   - bash: |
       GIT_COMMIT_ID=$(git rev-parse HEAD)
