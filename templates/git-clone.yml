@@ -6,7 +6,7 @@ parameters:
   - name: sourceFolder
     displayName: Source folder
     type: string
-    default: 'source'
+    default: 'app-source'
 
   - name: gitUrl
     displayName: Url of git
@@ -28,8 +28,8 @@ parameters:
 
   - name: isPrivateRepo
     displayName: Is private repo
-    type: boolean
-    default: false
+    type: string
+    default: 'false'
 
   - name: preSteps
     type: stepList

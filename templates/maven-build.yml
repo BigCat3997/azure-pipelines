@@ -1,63 +1,74 @@
 parameters:
+  # Path will run the project.
   - name: workDir
     displayName: Working directory
     type: string
-    default: $(System.DefaultWorkingDirectory)
 
+  # Path will contain output of the process.
   - name: outputFolder
     displayName: Output folder
     type: string
     default: 'target'
 
+  # Java version
   - name: javaVersion
     displayName: Java's version
-    type: number
-    default: 17
+    type: string
+    default: '17'
     values:
-      - 8
-      - 11
-      - 17
+      - '8'
+      - '11'
+      - '17'
 
+  # Maven version.
+  - name: mavenVersion
+    displayName: Maven version
+    type: string
+    default: '3.6.3'
+
+  # Maven command will be run.
   - name: mavenGoals
     displayName: Maven goals
     type: string
     default: 'clean package -B -e'
 
-  - name: mavenOpts
-    displayName: Maven opts
-    type: string
-    default: ''
-
+  # Maven username is necessary when authenticate to Feed.
   - name: mavenUsername
     displayName: Maven username
     type: string
     default: ''
 
+  # Maven password is necessary when authenticate to Feed.
   - name: mavenPassword
     displayName: Maven password
     type: string
     default: ''
 
+  # Flag to use feed
   - name: isUseFeed
     displayName: Connect to Azure Feed
     type: string
-    default: true
+    default: 'true'
 
+  # Flag to use cache
   - name: isUseCache
     displayName: Use cache for dependencies
     type: string
-    default: true
+    default: 'true'
 
+  # Maven folder's path containing cache(dependencies).
   - name: mavenCacheFolder
     displayName: Maven cache folder
     type: string
     default: $(Pipeline.Workspace)/.m2/repository
 
+  # Maven repository url.
   - name: mavenUrl
     displayName: Maven url
     type: string
     default: ''
 
+  # Maven settings.xml path.
   - name: mavenSettingsXmlPath
     displayName: Maven settings.xml path
     type: string
@@ -99,13 +110,6 @@ steps:
       MAVEN_SETTINGS_XML_PATH: ${{ parameters.mavenSettingsXmlPath }}
     displayName: Build command args
 
-  - task: JavaToolInstaller@0
-    inputs:
-      versionSpec: '${{ parameters.javaVersion }}'
-      jdkArchitectureOption: 'x64'
-      jdkSourceOption: 'PreInstalled'
-    displayName: Set Java ${{ parameters.javaVersion }}
-
   - ${{ if eq(parameters.isUseCache, true) }}:
       - task: Cache@2
         inputs:
@@ -116,9 +120,10 @@ steps:
           path: ${{ parameters.mavenCacheFolder }}
         displayName: Cache Maven local repo
 
-  - bash: |
-      echo "mvn $(command_args)"
-      mvn $(command_args)
+  - script: |
+      mvn ${MAVEN_COMMAND_ARGS}
+    env:
+      MAVEN_COMMAND_ARGS: $(command_args)
     workingDirectory: ${{ parameters.workDir }}
     displayName: Maven build
 
