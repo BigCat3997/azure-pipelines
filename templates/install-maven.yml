@@ -18,6 +18,7 @@ parameters:
     displayName: Maven's path
     type: string
     default: '$(Agent.ToolsDirectory)/maven'
+
 steps:
   - script: |
       wget https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/${MAVEN_VERSION}/apache-maven-${MAVEN_VERSION}-bin.zip
