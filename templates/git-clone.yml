@@ -12,6 +12,10 @@ parameters:
     displayName: Url of git
     type: string
 
+  - name: gitBranch
+    displayName: Token of git
+    type: string
+
   - name: gitUsername
     displayName: Username of git
     type: string
@@ -21,10 +25,6 @@ parameters:
     displayName: Token of git
     type: string
     default: ''
-
-  - name: gitBranch
-    displayName: Token of git
-    type: string
 
   - name: isPrivateRepo
     displayName: Is private repo
@@ -38,7 +38,6 @@ parameters:
   - name: postSteps
     type: stepList
     default: []
-
 steps:
   - ${{ parameters.preSteps }}
 
@@ -67,8 +66,9 @@ steps:
     displayName: Clone project
 
   - bash: |
-      ls -la
-    workingDirectory: ${{ parameters.workDir }}
+      tree ${WORK_DIR}
+    env:
+      WORK_DIR: ${{ parameters.workDir }}
     displayName: Verify project
 
   - bash: |
