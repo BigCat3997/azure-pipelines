@@ -8,8 +8,8 @@ Templates with Azure styles to build cicd processors.
 
 My own template list:
 
-- [a relative link] (templates/docker-build.yml)
-- [a relative link] (templates/git-clone.yml)
-- [a relative link] (templates/install-maven.yml)
-- [a relative link] (templates/maven-build.yml)
+- [a relative link](templates/docker-build.yml)
+- [a relative link](templates/git-clone.yml)
+- [a relative link](templates/install-maven.yml)
+- [a relative link](templates/maven-build.yml)
 - continuously evaluate.
