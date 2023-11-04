@@ -32,6 +32,12 @@ parameters:
     type: string
     default: 'clean package -B -e'
 
+  # Maven optional command.
+  - name: mavenOpts
+    displayName: Maven options
+    type: string
+    default: ''
+
   # Maven username is necessary when authenticate to Feed.
   - name: mavenUsername
     displayName: Maven username
@@ -74,6 +80,11 @@ parameters:
     type: string
     default: ''
 
+  - name: artifactName
+    displayName: name of artifact.
+    type: string
+    default: 'output'
+
   - name: preSteps
     type: stepList
     default: []
@@ -98,12 +109,13 @@ steps:
         COMMAND_ARGS="${COMMAND_ARGS} -Dserver.url=${MAVEN_URL} -Dserver.username=${MAVEN_USERNAME} -Dserver.password=${MAVEN_PASSWORD} -gs=${MAVEN_SETTINGS_XML_PATH}"
       fi
 
-      echo "##vso[task.setvariable variable=command_args]${COMMAND_ARGS}"
+      echo "##vso[task.setvariable variable=command_args]${COMMAND_ARGS} ${MAVEN_OPTS}"
     env:
       IS_USE_CACHE: ${{ parameters.isUseCache }}
       IS_USE_FEED: ${{ parameters.isUseFeed }}
       MAVEN_GOALS: ${{ parameters.mavenGoals }}
       MAVEN_CACHE_FOLDER: ${{ parameters.mavenCacheFolder }}
+      MAVEN_OPTS: ${{ parameters.mavenOpts }}
       MAVEN_URL: ${{ parameters.mavenUrl }}
       MAVEN_USERNAME: ${{ parameters.mavenUsername }}
       MAVEN_PASSWORD: ${{ parameters.mavenPassword }}
@@ -141,6 +153,6 @@ steps:
   - task: PublishBuildArtifacts@1
     inputs:
       pathtoPublish: '$(build.artifactstagingdirectory)'
-      artifactName: output
+      artifactName: ${{ parameters.artifactName }}
 
   - ${{ parameters.postSteps }}
