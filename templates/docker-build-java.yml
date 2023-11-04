@@ -9,8 +9,8 @@ parameters:
     type: string
     default: output
 
-  - name: targetJarPath
-    displayName: Dockerfile path
+  - name: targetJarPathPattern
+    displayName: Jar path pattern
     type: string
 
   - name: dockerfilePath
@@ -18,11 +18,11 @@ parameters:
     type: string
 
   - name: dockerImageName
-    displayName: Dockerfile path
+    displayName: Docker image name
     type: string
 
   - name: dockerImageVersion
-    displayName: Dockerfile path
+    displayName: Docker image version
     type: string
 
   - name: preSteps
@@ -49,7 +49,7 @@ steps:
 
   - bash: |
       echo "##[group]Used Variables"
-      echo "INFO: ${TARGET_JAR_PATH}"
+      echo "INFO: ${TARGET_JAR_PATH_PATTERN}"
       echo "INFO: ${DOCKERFILE_PATH}"
       echo "INFO: ${DOCKER_IMAGE_NAME}"
       echo "INFO: ${DOCKER_IMAGE_VERSION}"
@@ -60,11 +60,11 @@ steps:
 
       echo "##[section]INFO: Start Docker build"
       docker build \
-      --build-arg JAR_FILE="${TARGET_JAR_PATH}" \
+      --build-arg JAR_FILE="${TARGET_JAR_PATH_PATTERN}" \
       -t "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}" \
       -f Dockerfile .
     env:
-      TARGET_JAR_PATH: ${{ parameters.targetJarPath }}
+      TARGET_JAR_PATH_PATTERN: ${{ parameters.targetJarPathPattern }}
       DOCKERFILE_PATH: ${{ parameters.dockerfilePath }}
       DOCKER_IMAGE_NAME: ${{ parameters.dockerImageName }}
       DOCKER_IMAGE_VERSION: ${{ parameters.dockerImageVersion }}
