@@ -10,22 +10,6 @@ parameters:
     type: string
     default: 'target'
 
-  # Java version
-  - name: javaVersion
-    displayName: Java's version
-    type: string
-    default: '17'
-    values:
-      - '8'
-      - '11'
-      - '17'
-
-  # Maven version.
-  - name: mavenVersion
-    displayName: Maven version
-    type: string
-    default: '3.6.3'
-
   # Maven command will be run.
   - name: mavenGoals
     displayName: Maven goals
