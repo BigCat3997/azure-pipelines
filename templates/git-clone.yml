@@ -1,40 +1,54 @@
+# The flow clones a repository from git remote server.
+# Support both public or private repository.
+
 parameters:
+  # Working directory where execute this template.
   - name: workDir
-    displayName: Working directory
+    displayName: Working Directory
     type: string
 
+  # Folder contains app source (root folder of app source).
   - name: sourceFolder
     displayName: Source folder
     type: string
     default: 'app-source'
 
+  # Url of repository.
+  # Caution: The url has to .git at the end.
   - name: gitUrl
     displayName: Url of git
     type: string
 
+  # Branch of repository.
   - name: gitBranch
-    displayName: Token of git
+    displayName: Branch of git
     type: string
 
-  - name: gitUsername
-    displayName: Username of git
-    type: string
-    default: ''
-
-  - name: gitToken
-    displayName: Token of git
-    type: string
-    default: ''
-
+  # Public or private repository.
   - name: isPrivateRepo
     displayName: Is private repo
     type: string
     default: 'false'
 
+  # When the scope of repository is private.
+  # Username of git.
+  - name: gitUsername
+    displayName: Username of git
+    type: string
+    default: ''
+
+  # Token of git.
+  - name: gitToken
+    displayName: Token of git
+    type: string
+    default: ''
+
+  # Pre-steps run before the main processor start.
   - name: preSteps
     type: stepList
     default: []
 
+  # Post-steps run after the main processor finish.
   - name: postSteps
     type: stepList
     default: []
@@ -57,11 +71,11 @@ steps:
       git clone $GIT_CREDENTIAL_URL . && \
       git checkout $GIT_BRANCH
     env:
-      IS_PRIVATE_REPO: ${{ parameters.isPrivateRepo }}
       GIT_URL: ${{ parameters.gitUrl }}
+      GIT_BRANCH: ${{ parameters.gitBranch }}
+      IS_PRIVATE_REPO: ${{ parameters.isPrivateRepo }}
       GIT_USERNAME: ${{ parameters.gitUsername }}
       GIT_TOKEN: ${{ parameters.gitToken }}
-      GIT_BRANCH: ${{ parameters.gitBranch }}
       SOURCE_FOLDER: ${{ parameters.sourceFolder }}
     workingDirectory: ${{ parameters.workDir }}
     displayName: Clone project
@@ -69,10 +83,11 @@ steps:
   - bash: |
       tree .
     workingDirectory: ${{ parameters.workDir }}
-    displayName: Verify git project
+    displayName: Verify project
 
   - bash: |
       GIT_COMMIT_ID=$(git rev-parse HEAD)
+
       echo "##vso[task.setvariable variable=gitCommitId;isOutput=true]${GIT_COMMIT_ID}"
       echo "##vso[task.setvariable variable=gitShortCommitId;isOutput=true]${GIT_COMMIT_ID:0:8}"
     workingDirectory: ${{ parameters.workDir }}
