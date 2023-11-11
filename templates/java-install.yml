@@ -1,0 +1,25 @@
+# Install Java with a specific version.
+
+parameters:
+  # Version of Java.
+  - name: javaVersion
+    displayName: Java's version
+    type: string
+    default: '17'
+    values:
+      - '8'
+      - '11'
+      - '17'
+
+steps:
+  - script: |
+      echo "##[section]INFO: Set Java path"
+      echo "##vso[task.setvariable variable=JAVA_HOME]${!JAVA_PATH}"
+      echo "##vso[task.prependpath]${JAVA_HOME}/bin"
+    env:
+      JAVA_PATH: JAVA_HOME_${{ parameters.javaVersion }}_X64
+    displayName: Install Java ${{ parameters.javaVersion }}
+
+  - script: |
+      java --version
+    displayName: Verify Java ${{ parameters.javaVersion }}
