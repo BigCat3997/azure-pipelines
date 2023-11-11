@@ -1,0 +1,18 @@
+# Install Python with a specific version.
+
+parameters:
+  # Version of Python.
+  - name: pythonVersion
+    displayName: Python version
+    type: string
+    default: '3.10'
+
+steps:
+  - task: UsePythonVersion@0
+    inputs:
+      versionSpec: ${{ parameters.pythonVersion }}
+      architecture: 'x64'
+
+  - script: |
+      python --version
+    displayName: Verify Python ${{ parameters.pythonVersion }}
