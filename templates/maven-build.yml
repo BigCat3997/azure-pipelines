@@ -1,10 +1,12 @@
+# The flow builds the project using maven platform.
+
 parameters:
-  # Path will run the project.
+  # Working directory where execute this template.
   - name: workDir
-    displayName: Working directory
+    displayName: Working Directory
     type: string
 
-  # Path will contain output of the process.
+  # Path will contain output of the processor.
   - name: outputFolder
     displayName: Output folder
     type: string
@@ -64,15 +66,18 @@ parameters:
     type: string
     default: ''
 
+  # Name of root artifact's folder.
   - name: artifactName
-    displayName: name of artifact.
+    displayName: Name of artifact.
     type: string
     default: 'output'
 
+  # Pre-steps run before the main processor start.
   - name: preSteps
     type: stepList
     default: []
 
+  # Post-steps run after the main processor finish.
   - name: postSteps
     type: stepList
     default: []
@@ -93,7 +98,10 @@ steps:
         COMMAND_ARGS="${COMMAND_ARGS} -Dserver.url=${MAVEN_URL} -Dserver.username=${MAVEN_USERNAME} -Dserver.password=${MAVEN_PASSWORD} -gs=${MAVEN_SETTINGS_XML_PATH}"
       fi
 
-      echo "##vso[task.setvariable variable=command_args]${COMMAND_ARGS} ${MAVEN_OPTS}"
+      FINAL_COMMAND_ARGS="${COMMAND_ARGS} ${MAVEN_OPTS}"
+      echo "INFO: ${FINAL_COMMAND_ARGS}"
+
+      echo "##vso[task.setvariable variable=final_command_args]${FINAL_COMMAND_ARGS}"
     env:
       IS_USE_CACHE: ${{ parameters.isUseCache }}
       IS_USE_FEED: ${{ parameters.isUseFeed }}
@@ -117,26 +125,26 @@ steps:
         displayName: Cache Maven local repo
 
   - script: |
-      mvn ${MAVEN_COMMAND_ARGS}
+      mvn ${FINAL_COMMAND_ARGS}
     env:
-      MAVEN_COMMAND_ARGS: $(command_args)
+      FINAL_COMMAND_ARGS: $(final_command_args)
     workingDirectory: ${{ parameters.workDir }}
     displayName: Maven build
 
   - task: CopyFiles@2
-    displayName: 'Copy libs to: $(build.artifactstagingdirectory)'
+    displayName: 'Copy libs to: $(Build.ArtifactStagingDirectory)'
     inputs:
       SourceFolder: '${{ parameters.workDir }}/${{ parameters.outputFolder }}'
       Contents: |
         *.jar
         *.war
-      TargetFolder: '$(build.artifactstagingdirectory)'
+      TargetFolder: '$(Build.ArtifactStagingDirectory)'
       CleanTargetFolder: false
       OverWrite: true
 
   - task: PublishBuildArtifacts@1
     inputs:
-      pathtoPublish: '$(build.artifactstagingdirectory)'
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: ${{ parameters.artifactName }}
 
   - ${{ parameters.postSteps }}
