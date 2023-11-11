@@ -1,0 +1,100 @@
+parameters:
+  - name: workDir
+    displayName: Working Directory
+    type: string
+
+  - name: appDir
+    displayName: App Directory
+    type: string
+
+  - name: vmImage
+    displayName: VM Image
+    type: string
+
+  - name: gitUrl
+    displayName: Git url
+    type: string
+
+  - name: isPrivateRepo
+    displayName: Is private repo
+    type: string
+
+  - name: gitBranch
+    displayName: Git branch
+    type: string
+
+  - name: gitUsername
+    displayName: Git username
+    type: string
+    default: ''
+
+  - name: gitToken
+    displayName: Git token
+    type: string
+    default: ''
+
+  - name: mavenSettingsXmlPath
+    displayName: Maven path of settings.xml
+    type: string
+
+  - name: mavenUrl
+    displayName: Maven url
+    type: string
+
+  - name: mavenUsername
+    displayName: Maven username
+    type: string
+
+  - name: mavenPassword
+    displayName: Maven password
+    type: string
+
+  - name: targetJarPathPattern
+    displayName: Jar path pattern
+    type: string
+
+  - name: dockerfilePath
+    displayName: Dockerfile path
+    type: string
+
+  - name: dockerImageName
+    displayName: Docker image name
+    type: string
+
+  - name: dockerImageVersion
+    displayName: Docker image version
+    type: string
+    default: 'latest'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildAppSource
+        displayName: Build app source
+        pool:
+          vmImage: ${{ parameters.vmImage }}
+        steps:
+          - template: git-clone.yml
+            parameters:
+              workDir: ${{ parameters.workDir }}
+              gitUrl: ${{ parameters.gitUrl }}
+              isPrivateRepo: ${{ parameters.isPrivateRepo }}
+              gitBranch: ${{ parameters.gitBranch }}
+              gitUsername: ${{ parameters.gitUsername }}
+              gitToken: ${{ parameters.gitToken }}
+          - template: maven-build.yml
+            parameters:
+              appDir: ${{ parameters.appDir }}
+  - stage: Docker
+    jobs:
+      - job: DockerBuildImage
+        displayName: Docker build image
+        pool:
+          vmImage: ${{ parameters.vmImage }}
+        steps:
+          - template: docker-build-java.yml
+            parameters:
+              targetJarPathPattern: ${{ parameters.targetJarPathPattern }}
+              dockerfilePath: ${{ parameters.dockerfilePath }}
+              dockerImageName: ${{ parameters.dockerImageName }}
+              dockerImageVersion: ${{ parameters.dockerImageVersion }}
