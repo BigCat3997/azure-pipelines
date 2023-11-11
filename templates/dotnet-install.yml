@@ -1,4 +1,7 @@
+# Install Dotnet with a specific version.
+
 parameters:
+  # Version of Dotnet.
   - name: dotnetVersion
     displayName: Dotnet's version
     type: string
@@ -15,4 +18,4 @@ steps:
 
   - script: |
       dotnet --version
-    displayName: Dotnet version
+    displayName: Verify Dotnet ${{ parameters.dotnetVersion }}
