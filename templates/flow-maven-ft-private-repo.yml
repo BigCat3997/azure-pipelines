@@ -85,8 +85,9 @@ stages:
           - template: maven-build.yml
             parameters:
               preSteps:
-                - template: install-maven.yml
-              workDir: ${{ parameters.appDir }}
+                - template: java-install.yml
+                - template: maven-install.yml
+              appDir: ${{ parameters.appDir }}
               mavenSettingsXmlPath: ${{ parameters.mavenSettingsXmlPath }}
               mavenUrl: ${{ parameters.mavenUrl }}
               mavenUsername: ${{ parameters.mavenUsername }}
