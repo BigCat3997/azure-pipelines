@@ -1,13 +1,7 @@
-parameters:
-  - name: javaVersion
-    displayName: Java's version
-    type: string
-    default: '17'
-    values:
-      - '8'
-      - '11'
-      - '17'
+# Install Maven with a specific version.
 
+parameters:
+  # Version of Maven.
   - name: mavenVersion
     displayName: Maven's version
     type: string
@@ -39,11 +33,10 @@ steps:
       echo "##vso[task.setvariable variable=M2_HOME]${MAVEN_PATH}"
       echo "##vso[task.setvariable variable=MAVEN_HOME]${MAVEN_PATH}"
       echo "##vso[task.prependpath]${MAVEN_PATH}/bin"
-
-      echo "##[section]INFO: Set Java path"
-      echo "##vso[task.setvariable variable=JAVA_HOME]${!JAVA_PATH}"
-      echo "##vso[task.prependpath]${JAVA_HOME}/bin"
     env:
-      MAVEN_PATH: ${{ parameters.mavenPath }}/${{ parameters.mavenVersion }}/x64/apache-maven-${{ parameters.mavenVersion }}
-      JAVA_PATH: JAVA_HOME_${{ parameters.javaVersion }}_X64
-    displayName: Override path
+      MAVEN_PATH: '${{ parameters.mavenPath }}/${{ parameters.mavenVersion }}/x64/apache-maven-${{ parameters.mavenVersion }}'
+    displayName: Install Maven ${{ parameters.mavenVersion }}
+
+  - script: |
+      mvn --version
+    displayName: Verify Maven ${{ parameters.mavenVersion }}
