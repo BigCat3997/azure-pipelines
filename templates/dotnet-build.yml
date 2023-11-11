@@ -1,0 +1,96 @@
+# The flow builds the project using dotnet core platform.
+
+parameters:
+  # Destination project will run the command (the solution have a lot of projects).
+  - name: appDir
+    displayName: Application Directory
+    type: string
+
+  # Path will contains output of the processor (dll files, etc.).
+  - name: outputFolder
+    displayName: Output folder
+    type: string
+    default: 'target'
+
+  # Dotnet command will be run.
+  - name: dotnetGoals
+    displayName: Dotnet goals
+    type: string
+    default: 'publish'
+
+  # Dotnet optional arguments.
+  # Extensions of command that is defined here.
+  - name: dotnetOpts
+    displayName: Dotnet options
+    type: string
+    default: '-c Release -o target'
+
+  # Flag to use feed.
+  - name: isUseFeed
+    displayName: Connect to Azure Feed
+    type: string
+    default: 'true'
+
+  # Flag to use cache.
+  - name: isUseCache
+    displayName: Use cache for dependencies
+    type: string
+    default: 'true'
+
+  # Nuget folder's path containing cache(dependencies).
+  - name: nugetCacheFolder
+    displayName: Nuget cache folder
+    type: string
+    default: $(Pipeline.Workspace)/.nuget/packages
+
+  # Name of root artifact's folder.
+  - name: artifactName
+    displayName: Name of artifact.
+    type: string
+    default: 'output'
+
+  # Pre-steps run before the main processor start.
+  - name: preSteps
+    type: stepList
+    default: []
+
+  # Post-steps run after the main processor finish.
+  - name: postSteps
+    type: stepList
+    default: []
+
+steps:
+  - ${{ parameters.preSteps }}
+
+  - bash: |
+      COMMAND_ARGS=${DOTNET_GOALS}
+
+      FINAL_COMMAND_ARGS="${COMMAND_ARGS} ${DOTNET_OPTS}"
+      echo "INFO: ${FINAL_COMMAND_ARGS}"
+
+      echo "##vso[task.setvariable variable=final_command_args]${FINAL_COMMAND_ARGS}"
+    env:
+      DOTNET_GOALS: ${{ parameters.dotnetGoals }}
+      DOTNET_OPTS: ${{ parameters.dotnetOpts }}
+    displayName: Build command args
+
+  - script: |
+      dotnet ${FINAL_COMMAND_ARGS}
+    env:
+      FINAL_COMMAND_ARGS: $(final_command_args)
+    workingDirectory: ${{ parameters.appDir }}
+    displayName: Dotnet publish
+
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: '${{ parameters.appDir }}/${{ parameters.outputFolder }}'
+      archiveFile: '$(Build.ArtifactStagingDirectory)/app.zip'
+      replaceExistingArchive: true
+      verbose: true
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: ${{ parameters.artifactName }}
+
+  - ${{ parameters.postSteps }}
