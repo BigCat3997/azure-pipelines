@@ -1,0 +1,17 @@
+parameters:
+  - name: vmImage
+    displayName: Image of VM
+    value: 'ubuntu-latest'
+
+  - name: workDir
+    displayName: Working directory
+    value: $(System.DefaultWorkingDirectory)
+
+  - name: appDir
+    displayName: App's working directory
+    value: $(System.DefaultWorkingDirectory)/app-source
+
+variables:
+  vmImage: ${{ parameters.vmImage}}
+  workDir: ${{ parameters.workDir}}
+  appDir: ${{ parameters.appDir}}
