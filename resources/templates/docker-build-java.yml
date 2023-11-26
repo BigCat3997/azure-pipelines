@@ -25,6 +25,23 @@ parameters:
     displayName: Docker image version
     type: string
 
+  - name: isPushImageToRegistry
+    displayName: Push docker image to registry
+    type: string
+    default: 'false'
+
+  - name: dockerServerUri
+    displayName: Uri of docker
+    type: string
+
+  - name: dockerServerUsername
+    displayName: Username of docker
+    type: string
+
+  - name: dockerServerPassword
+    displayName: Password of docker
+    type: string
+
   - name: preSteps
     type: stepList
     default: []
@@ -62,14 +79,37 @@ steps:
       echo "##[section]INFO: Start Docker build"
       docker build \
       --build-arg JAR_FILE="${TARGET_JAR_PATH_PATTERN}" \
-      -t "${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}" \
+      -t "${DOCKER_SERVER_URI}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}" \
       -f Dockerfile .
     env:
       TARGET_JAR_PATH_PATTERN: ${{ parameters.targetJarPathPattern }}
       DOCKERFILE_PATH: ${{ parameters.dockerfilePath }}
+      DOCKER_SERVER_URI: ${{ parameters.dockerServerUri }}
       DOCKER_IMAGE_NAME: ${{ parameters.dockerImageName }}
       DOCKER_IMAGE_VERSION: ${{ parameters.dockerImageVersion }}
     workingDirectory: ${{ parameters.workDir }}/${{ parameters.artifactName }}
     displayName: Docker build image
+
+  - ${{ if eq(parameters.isPushImageToRegistry, 'true') }}:
+    - bash: |
+        docker login ${DOCKER_SERVER_URI} \
+        -u ${DOCKER_SERVER_USERNAME} \
+        -p ${DOCKER_SERVER_PASSWORD}
+      env:
+        DOCKER_SERVER_URI: ${{ parameters.dockerServerUri }}
+        DOCKER_SERVER_USERNAME: ${{ parameters.dockerServerUsername }}
+        DOCKER_SERVER_PASSWORD: ${{ parameters.dockerServerPassword }}
+      workingDirectory: ${{ parameters.workDir }}/${{ parameters.artifactName }}
+      displayName: Docker login
+
+    - bash: |
+        docker push \
+        "${DOCKER_SERVER_URI}/${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_VERSION}" \
+      env:
+        DOCKER_SERVER_URI: ${{ parameters.dockerServerUri }}
+        DOCKER_IMAGE_NAME: ${{ parameters.dockerImageName }}
+        DOCKER_IMAGE_VERSION: ${{ parameters.dockerImageVersion }}
+      workingDirectory: ${{ parameters.workDir }}/${{ parameters.artifactName }}
+      displayName: Docker push
 
   - ${{ parameters.postSteps }}
