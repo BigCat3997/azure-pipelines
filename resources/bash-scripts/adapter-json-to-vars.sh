@@ -22,5 +22,4 @@ printf "%s\n" ${vars}
 
 # export variables by Azure environment.
 vars_azure=$(cat ${JSON_FILE_PATH} | jq -r 'to_entries|map("echo \"##vso[task.setvariable variable=\(.key|ascii_upcase)]\(.value|tostring)\"")| .[]')
-# printf "%s\n" ${vars_azure}
 eval "${vars_azure}"
