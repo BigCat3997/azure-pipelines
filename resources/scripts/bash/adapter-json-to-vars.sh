@@ -3,12 +3,18 @@
 # This script run into Azure environment where all variables is not stored normally.
 # We must use its own syntax (task.setvariable) to expose these variables.
 # Reference link: https://learn.microsoft.com/en-us/azure/devops/pipelines/process/variables?view=azure-devops&tabs=yaml%2Cbatch
-# Json payload:
+#
+# Transform:
 # {
 #     "fruit": "Apple",
 #     "size": "Large",
 #     "color": "Red"
 # }
+#
+# To:
+#     FRUIT=APPLE
+#     SIZE=LARGE
+#     COLOR=RED
 # --------------------------------------
 echo "Json file path: ${JSON_FILE_PATH}"
 
